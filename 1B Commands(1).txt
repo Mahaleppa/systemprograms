@@ -1,0 +1,83 @@
+d = read.csv("fb.csv")
+
+dim(d)
+
+ncol(d) //No. of columns 
+
+nrow(d) //No. of Rows
+
+head(d) //First six entries
+
+
+sub = d[c('category','comment','like,'share')] //create subset
+
+head(sub)
+
+write.csv(sub,"sub.csv")
+
+sub2 = subset(sub,comment>50) //create subset with condition
+
+sub2
+
+*************************************************************************************************
+
+//merge Data Set
+
+first = read.csv("fb.csv")
+
+second = read.csv("newfb.csv")
+
+dim(first)
+
+dim(second)
+
+newdata = rbind(first,second)
+
+dim(newdata)
+
+*******************************************************************************************************
+
+//sort Datasets
+
+d = read.csv("fb.csv")
+
+
+sub = d[c('category','comment','like,'share')] //create subset
+
+x = sub[order(-d$share),] //sort by share " - is for descending
+
+head(x)
+
+**********************************************************************************************************
+//Transpose Datasets
+
+d = read.csv("fb.csv")
+
+
+sub = d[c('category','comment','like,'share')] //create subset
+
+tran = t(sub) //finds the transpose
+
+head(tran)
+
+************************************************************************************************************
+//Melt Data to long format
+
+d = read.csv("fb.csv")
+
+
+sub = d[c('Category','comment','like,'share')] //create subset
+
+melt(data = sub,id.vars = "category")
+
+***************************************************************************************************************
+//casting dataset
+
+d = read.csv("fb.csv")
+
+
+sub = d[c('Category','Post.Month','Post.Hour,'Paid')] //create subset
+
+head(sub)
+
+cast(sub, Category ~ Post.Month,mean,value = 'Paid')
