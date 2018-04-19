@@ -1,0 +1,246 @@
+Note: For this practical 2 satasets are needed. 1) airport.csv (already given) 2) 2008.csv (not given, you have to include. Available in 6A lab)
+
+student@HP800G1:~$ cd Downloads/
+
+student@HP800G1:~/Downloads$ sudo mv hive/ /usr/local/
+
+student@HP800G1:~/Downloads$ hadoop fs -mkdir /tmp
+18/01/24 13:57:32 WARN util.NativeCodeLoader: Unable to load native-hadoop library for your platform... using builtin-java classes where applicable
+
+student@HP800G1:~/Downloads$ hadoop fs -mkdir -p /user/hive/warehouse
+18/01/24 13:57:46 WARN util.NativeCodeLoader: Unable to load native-hadoop library for your platform... using builtin-java classes where applicable
+
+student@HP800G1:~/Downloads$ hadoop fs -chmod g+w /tmp
+18/01/24 13:58:03 WARN util.NativeCodeLoader: Unable to load native-hadoop library for your platform... using builtin-java classes where applicable
+
+student@HP800G1:~/Downloads$ hadoop fs -chmod g+w /user/hive/warehouse
+18/01/24 13:58:17 WARN util.NativeCodeLoader: Unable to load native-hadoop library for your platform... using builtin-java classes where applicable
+
+//add path to bashrc
+
+export HIVE_HOME=/usr/local/hive/
+export PATH=$PATH:$HIVE_HOME/bin
+export HADOOP_USER_CLASSPATH_FIRST=true
+
+student@HP800G1:~/Downloads$ source ~/.bashrc
+
+student@HP800G1:~/Downloads$ cd $HIVE_HOME/conf
+
+student@HP800G1:/usr/local/hive/conf$ ls
+beeline-log4j.properties.template  hive-exec-log4j.properties.template
+hive-default.xml.template          hive-log4j.properties.template
+hive-env.sh.template               ivysettings.xml
+
+student@HP800G1:/usr/local/hive/conf$ cp hive-env.sh.template hive-env.sh
+
+student@HP800G1:/usr/local/hive/conf$ gedit hive-env.sh
+
+// add path HADOOP_HOME=/usr/local/hadoop/	
+
+student@HP800G1:/usr/local/hive/conf$ hive
+
+Logging initialized using configuration in jar:file:/usr/local/hive/lib/hive-common-1.2.1.jar!/hive-log4j.properties
+hive>
+****************************************************************************** 
+student@HP800G1:~$ cd Downloads/
+student@HP800G1:~/Downloads$ hadoop fs -put 2008.csv /user/hive/warehouse/
+18/01/24 15:10:25 WARN util.NativeCodeLoader: Unable to load native-hadoop library for your platform... using builtin-java classes where applicable
+
+***********************************************************************************
+hive> create database flight_info;
+OK
+Time taken: 0.318 seconds
+CREATE TABLE flight_data(
+   year INT,
+
+   month INT,
+   day INT,
+   day_of_week INT,
+   dep_time INT,
+   crs_dep_time INT,
+   arr_time INT,
+   crs_arr_time INT,
+   unique_carrier STRING,
+   flight_num INT,
+   tail_num STRING,
+   actual_elapsed_time INT,
+   crs_elapsed_time INT,
+   air_time INT,
+   arr_delay INT,
+   dep_delay INT,
+   origin STRING,
+   dest STRING,
+   distance INT,
+   taxi_in INT,
+   taxi_out INT,
+   cancelled INT,
+   cancellation_code STRING,
+   diverted INT,
+   carrier_delay STRING,
+   weather_delay STRING,
+   nas_delay STRING,
+   security_delay STRING,
+   late_aircraft_delay STRING
+)
+ROW FORMAT DELIMITED
+FIELDS TERMINATED BY ',';
+
+___________________________________________________
+
+//Load the data into the table:
+
+
+hive> LOAD DATA LOCAL INPATH '2008.csv' OVERWRITE INTO TABLE flight_data;
+Loading data to table default.flight_data
+Table default.flight_data stats: [numFiles=1, numRows=0, totalSize=689413344, rawDataSize=0]
+OK
+Time taken: 17.18 seconds
+
+__________________________________________________________
+
+//Ensure that data is loaded
+hive> SELECT
+    >    *
+    > FROM
+    >    flight_data
+    > LIMIT 10; 
+
+
+____________________________________________________________
+
+// Query the table. Find average arrival delay for all flights departing SFO in January:
+
+hive> SELECT
+    >    avg(arr_delay)
+    > FROM
+    >    flight_data
+    > WHERE
+    >    month=1
+    >    AND origin='SFO';
+Query ID = student_20180124151650_64a19b5c-0256-4767-8de8-8873a67b7ebc
+Total jobs = 1
+Launching Job 1 out of 1
+Number of reduce tasks determined at compile time: 1
+In order to change the average load for a reducer (in bytes):
+  set hive.exec.reducers.bytes.per.reducer=<number>
+In order to limit the maximum number of reducers:
+  set hive.exec.reducers.max=<number>
+In order to set a constant number of reducers:
+  set mapreduce.job.reduces=<number>
+Job running in-process (local Hadoop)
+2018-01-24 15:16:54,621 Stage-1 map = 0%,  reduce = 0%
+2018-01-24 15:16:58,572 Stage-1 map = 100%,  reduce = 0%
+2018-01-24 15:17:01,586 Stage-1 map = 33%,  reduce = 0%
+2018-01-24 15:17:02,592 Stage-1 map = 100%,  reduce = 0%
+2018-01-24 15:17:06,613 Stage-1 map = 100%,  reduce = 100%
+Ended Job = job_local1105550390_0001
+MapReduce Jobs Launched: 
+Stage-Stage-1:  HDFS Read: 2184214976 HDFS Write: 2757653376 SUCCESS
+Total MapReduce CPU Time Spent: 0 msec
+OK
+28.669403949068094
+Time taken: 15.913 seconds, Fetched: 1 row(s)
+________________________________________________________________________________
+
+//create the airports table
+
+hive> CREATE TABLE airports(
+    >    name STRING,
+    >    country STRING,
+    >    area_code INT,
+    >    code STRING)
+    > ROW FORMAT DELIMITED
+    > FIELDS TERMINATED BY ',';
+OK
+Time taken: 0.164 seconds
+
+_______________________________________________________________________________________
+
+hive> LOAD DATA LOCAL INPATH 'airports.csv' OVERWRITE INTO TABLE airports;
+Loading data to table default.airports
+Table default.airports stats: [numFiles=1, numRows=0, totalSize=582857, rawDataSize=0]
+OK
+Time taken: 0.988 seconds
+
+//On hive shell, list some rows from the airports table:
+
+hive> SELECT
+    >    *
+    > FROM
+    >    airports
+    > LIMIT 10
+    > ;
+OK
+	NULL	NULL	NULL
+	NULL	NULL	NULL
+	NULL	NULL	NULL
+	NULL	NULL	NULL
+	NULL	NULL	NULL
+	NULL	NULL	NULL
+<!DOCTYPE html>	NULL	NULL	NULL
+<html lang="en">	NULL	NULL	NULL
+  <head>	NULL	NULL	NULL
+    <meta charset="utf-8">	NULL	NULL	NULL
+Time taken: 0.641 seconds, Fetched: 10 row(s)
+
+____________________________________________________________________________
+
+//run a join query to find the average delay in January 2008 for each airport and to print out the airport's name:
+
+hive> SELECT
+   > name,
+   > AVG(arr_delay)
+> FROM
+   > flight_data f
+   > INNER JOIN airports a
+   > ON (f.origin=a.code)
+> WHERE
+   > month=1
+> GROUP BY
+   > name;
+
+______________________________________________________________________________
+
+
+//creating index on flight information system (compact index)
+
+CREATE INDEX flight_index
+ 
+ON TABLE flight_data (flight_num)
+ 
+AS 'org.apache.hadoop.hive.ql.index.compact.CompactIndexHandler'
+ 
+WITH DEFERRED REBUILD;
+
+____________________________________________________________________________
+
+//show index
+
+show formatted index on flight_data;
+
+_____________________________________________________________________________
+
+//bitmap index
+
+CREATE INDEX olympic_index_bitmap
+ 
+ON TABLE olympic (age)
+ 
+AS 'BITMAP'
+ 
+WITH DEFERRED REBUILD;
+
+____________________________________________________________________________
+
+
+//save all hive queries in file
+
+hive -f myfile.q 
+
+___________________________________________________________________________
+
+
+//before saving drop table (tablename = name of your table)
+
+drop table tablename;
+__________________________________________________
